@@ -1,0 +1,72 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* === Indicador visual de stock === */
+.stock-bar {
+  display: inline-block;
+  width: 60px;
+  height: 10px;
+  border-radius: 5px;
+  margin-left: 10px;
+  vertical-align: middle;
+  transition: background-color 0.3s ease;
+}
+
+.stock-alto {
+  background-color: #2ecc71; /* verde */
+}
+
+.stock-medio {
+  background-color: #f1c40f; /* amarillo */
+}
+
+.stock-bajo {
+  background-color: #e74c3c; /* rojo */
+}
+
+/* === Mejora general para cada producto === */
+li {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+li:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
