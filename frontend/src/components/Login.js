@@ -1,7 +1,9 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { login, setToken } from "../api";
 
-function Login() {
+function Login({ onLogin }) {
+  const navigate = useNavigate();
   const [correo, setCorreo] = useState("");
   const [password, setPassword] = useState("");
   const [mensaje, setMensaje] = useState("");
@@ -26,6 +28,7 @@ function Login() {
         }
 
         setMensaje("Inicio de sesión exitoso");
+        onLogin(); // Notificar al componente padre que el login fue exitoso
       } else {
         setMensaje("No se recibió token del servidor");
       }
@@ -38,13 +41,17 @@ function Login() {
   return (
     <div
       style={{
-        marginBottom: "2rem",
-        border: "1px solid #ccc",
-        padding: "1rem",
-        borderRadius: "8px",
+        maxWidth: "400px",
+        margin: "40px auto",
+        padding: "2rem",
+        borderRadius: "10px",
+        boxShadow: "0 0 10px rgba(0,0,0,0.1)",
+        backgroundColor: "white",
       }}
     >
-      <h2>🔐 Iniciar Sesión</h2>
+      <h2 style={{ textAlign: "center", color: "#2c3e50", marginBottom: "1.5rem" }}>
+        🔐 Iniciar Sesión
+      </h2>
       <form onSubmit={manejarLogin}>
         <input
           type="email"
@@ -71,6 +78,10 @@ function Login() {
       </form>
 
       {mensaje && <p>{mensaje}</p>}
+
+      <button onClick={() => navigate("/register")}>
+        Registrarse
+      </button>
     </div>
   );
 }
