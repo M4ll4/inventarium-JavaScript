@@ -6,8 +6,21 @@ describe('Pruebas del módulo de productos', () => {
 
   let tokenAdmin = "";
 
-  // 🔐 Antes de empezar, logueamos como admin para obtener un token
+  // 🔐 Antes de empezar, sincronizamos modelos y logueamos como admin para obtener un token
   beforeAll(async () => {
+    await sequelize.sync({ force: true }); // Sincroniza modelos y crea tablas
+
+    // Crear usuario admin para login
+    await request(app)
+      .post('/api/usuarios/register')
+      .send({
+        nombre: 'Admin TDD',
+        email: 'sebastian@correo.com',
+        contraseña: '123456',
+        rol: 'admin'
+      });
+
+    // Login como admin
     const loginResponse = await request(app)
       .post('/api/usuarios/login')
       .send({
