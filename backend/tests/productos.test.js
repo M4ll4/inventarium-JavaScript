@@ -1,155 +1,186 @@
+
 const request = require('supertest');
 const app = require('../app');
 const sequelize = require('../config/database');
+const { crearTokenAdmin, productoBase, crearProducto } = require('./helpers');
 
 describe('Pruebas del módulo de productos', () => {
+  let tokenAdmin = '';
 
-  let tokenAdmin = "";
-
-  // 🔐 Antes de empezar, sincronizamos modelos y logueamos como admin para obtener un token
   beforeAll(async () => {
-    await sequelize.sync({ force: true }); // Sincroniza modelos y crea tablas
-
-    // Crear usuario admin para login
-    await request(app)
-      .post('/api/usuarios/register')
-      .send({
-        nombre: 'Admin TDD',
-        email: 'sebastian@correo.com',
-        contraseña: '123456',
-        rol: 'admin'
-      });
-
-    // Login como admin
-    const loginResponse = await request(app)
-      .post('/api/usuarios/login')
-      .send({
-        email: 'sebastian@correo.com',
-        contraseña: '123456'
-      });
-
-    tokenAdmin = loginResponse.body.token;
-    // Si el test no obtiene token, fallo explícitamente
-    if (!tokenAdmin) throw new Error("No se pudo obtener token para las pruebas");
+    await sequelize.sync({ force: true });
+    tokenAdmin = await crearTokenAdmin();
   });
 
-  test('Debería responder con estado 200 en GET /api/productos', async () => {
-    const response = await request(app).get('/api/productos');
+  // CRUD primero
+  test('GET /api/productos debe responder 200 y array', async () => {
+    const response = await request(app)
+      .get('/api/productos')
+      .set('Authorization', `Bearer ${tokenAdmin}`);
+
     expect(response.statusCode).toBe(200);
+    expect(Array.isArray(response.body)).toBe(true);
   });
 
-  test('Debería crear un nuevo producto con POST /api/productos', async () => {
-    const nuevoProducto = {
-      nombre: 'Arroz Diana 500g',
-      precio: 2500,
-      stock: 100,
-      categoria: 'Granos'
-    };
-
+  test('POST /api/productos debe crear un producto', async () => {
+    const nuevo = productoBase({ nombre: 'Producto A' });
     const response = await request(app)
       .post('/api/productos')
-      .set('Authorization', `Bearer ${tokenAdmin}`) // <-- AÑADIR TOKEN
-      .send(nuevoProducto);
-
+      .set('Authorization', `Bearer ${tokenAdmin}`)
+      .send(nuevo);
     expect(response.statusCode).toBe(201);
     expect(response.body).toHaveProperty('id');
-    expect(response.body.nombre).toBe(nuevoProducto.nombre);
+    expect(response.body.nombre).toBe(nuevo.nombre);
   });
 
-  test('Debería obtener un producto por ID con GET /api/productos/:id', async () => {
-  // 1. Creamos un producto primero
-  const nuevoProducto = {
-    nombre: 'Aceite Premier 1L',
-    precio: 8000,
-    stock: 50,
-    categoria: 'Aceites'
-  };
+  test('GET /api/productos/:id debe devolver el producto', async () => {
+    const creado = await crearProducto(tokenAdmin, { nombre: 'Producto B', precio: 2000, cantidad: 5 });
+    const id = creado.id;
+    const response = await request(app)
+      .get(`/api/productos/${id}`)
+      .set('Authorization', `Bearer ${tokenAdmin}`);
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toHaveProperty('id', id);
+  });
 
-  const created = await request(app)
-    .post('/api/productos')
-    .set('Authorization', `Bearer ${tokenAdmin}`) // ✅ NECESARIO
-    .send(nuevoProducto);
+  test('PUT /api/productos/:id debe actualizar el producto', async () => {
+    const creado = await crearProducto(tokenAdmin, { nombre: 'Producto C', precio: 3000, cantidad: 7 });
+    const id = creado.id;
+    const cambios = { nombre: 'Producto C+', precio: 3500, cantidad: 9 };
+    const response = await request(app)
+      .put(`/api/productos/${id}`)
+      .set('Authorization', `Bearer ${tokenAdmin}`)
+      .send(cambios);
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toHaveProperty('id', id);
+    expect(response.body.nombre).toBe(cambios.nombre);
+    expect(Number(response.body.precio)).toBe(cambios.precio);
+  });
 
-  const id = created.body.id;
+  test('DELETE /api/productos/:id debe eliminar y luego 404 al consultar', async () => {
+    const creado = await crearProducto(tokenAdmin, { nombre: 'Producto D', precio: 4000, cantidad: 3 });
+    const id = creado.id;
+    const del = await request(app)
+      .delete(`/api/productos/${id}`)
+      .set('Authorization', `Bearer ${tokenAdmin}`);
+    expect(del.statusCode).toBe(200);
+    const getDeleted = await request(app)
+      .get(`/api/productos/${id}`)
+      .set('Authorization', `Bearer ${tokenAdmin}`);
+    expect(getDeleted.statusCode).toBe(404);
+  });
 
-  // 2. Consultamos el producto creado
-  const response = await request(app)
-    .get(`/api/productos/${id}`)
-    .set('Authorization', `Bearer ${tokenAdmin}`); // ✅ NECESARIO
+  // Validaciones debajo
+  test('No debería crear un producto con precio negativo', async () => {
+    const payload = { nombre: 'Negativo Precio', precio: -1, cantidad: 1, categoria: 'Test' };
+    const response = await request(app)
+      .post('/api/productos')
+      .set('Authorization', `Bearer ${tokenAdmin}`)
+      .send(payload);
 
-  expect(response.statusCode).toBe(200);
-  expect(response.body).toHaveProperty('id', id);
-  expect(response.body.nombre).toBe(nuevoProducto.nombre);
-});
+    expect(response.statusCode).toBe(400);
+    expect(response.body).toHaveProperty('mensaje');
+  });
 
-test('Debería actualizar un producto con PUT /api/productos/:id', async () => {
-  // 1. Crear un producto inicial
-  const nuevoProducto = {
-    nombre: 'Azúcar Manuelita 1kg',
-    precio: 4000,
-    stock: 30,
-    categoria: 'Endulzantes'
-  };
+  test('No debería crear un producto con cantidad negativa', async () => {
+    const payload = { nombre: 'Negativo Cantidad', precio: 10, cantidad: -5, categoria: 'Test' };
+    const response = await request(app)
+      .post('/api/productos')
+      .set('Authorization', `Bearer ${tokenAdmin}`)
+      .send(payload);
 
-  const created = await request(app)
-    .post('/api/productos')
-    .set('Authorization', `Bearer ${tokenAdmin}`)
-    .send(nuevoProducto);
+    expect(response.statusCode).toBe(400);
+    expect(response.body).toHaveProperty('mensaje');
+  });
 
-  const id = created.body.id;
+  test('No debería crear un producto sin nombre (campo requerido)', async () => {
+    const payload = { precio: 1000, cantidad: 1, categoria: 'Test' };
+    const response = await request(app)
+      .post('/api/productos')
+      .set('Authorization', `Bearer ${tokenAdmin}`)
+      .send(payload);
 
-  // 2. Actualizar el producto
-  const cambios = {
-    nombre: 'Azúcar Manuelita 1kg - Light',
-    precio: 4500,
-    stock: 25
-  };
+    expect(response.statusCode).toBe(400);
+    expect(response.body).toHaveProperty('mensaje');
+  });
 
-  const response = await request(app)
-    .put(`/api/productos/${id}`)
-    .set('Authorization', `Bearer ${tokenAdmin}`)
-    .send(cambios);
+  test('Debería responder 404 al obtener un producto inexistente', async () => {
+    const inexistenteId = 999999;
+    const response = await request(app)
+      .get(`/api/productos/${inexistenteId}`)
+      .set('Authorization', `Bearer ${tokenAdmin}`);
 
-  expect(response.statusCode).toBe(200); // o 204 si no devuelves el producto actualizado
-  expect(response.body).toHaveProperty('id', id);
-  expect(response.body.nombre).toBe(cambios.nombre);
-  expect(Number(response.body.precio)).toBe(cambios.precio); // <- sin '+'
-});
+    expect(response.statusCode).toBe(404);
+    expect(response.body).toHaveProperty('mensaje');
+  });
 
+  test('Debería responder 404 al actualizar un producto inexistente', async () => {
+    const inexistenteId = 999999;
+    const response = await request(app)
+      .put(`/api/productos/${inexistenteId}`)
+      .set('Authorization', `Bearer ${tokenAdmin}`)
+      .send({ nombre: 'X', precio: 1 });
 
-test('Debería eliminar un producto con DELETE /api/productos/:id', async () => {
-  // 1. Crear un producto inicial
-  const nuevoProducto = {
-    nombre: 'Sal Refisal 500g',
-    precio: 1500,
-    stock: 80,
-    categoria: 'Condimentos'
-  };
+    expect(response.statusCode).toBe(404);
+    expect(response.body).toHaveProperty('mensaje');
+  });
 
-  const created = await request(app)
-    .post('/api/productos')
-    .set('Authorization', `Bearer ${tokenAdmin}`)
-    .send(nuevoProducto);
+  test('Debería responder 404 al eliminar un producto inexistente', async () => {
+    const inexistenteId = 999999;
+    const response = await request(app)
+      .delete(`/api/productos/${inexistenteId}`)
+      .set('Authorization', `Bearer ${tokenAdmin}`);
 
-  const id = created.body.id;
+    expect(response.statusCode).toBe(404);
+    expect(response.body).toHaveProperty('mensaje');
+  });
 
-  // 2. Eliminar el producto
-  const response = await request(app)
-    .delete(`/api/productos/${id}`)
-    .set('Authorization', `Bearer ${tokenAdmin}`);
+  // Seguridad
+  test('Debería rechazar crear producto sin token', async () => {
+    const payload = { nombre: 'S/T', precio: 100, cantidad: 1, categoria: 'Test' };
+    const response = await request(app)
+      .post('/api/productos')
+      // sin Authorization
+      .send(payload);
 
-  expect(response.statusCode).toBe(200); // o 204 dependiendo de tu controlador
+    expect(response.statusCode).toBe(401);
+    expect(response.body).toHaveProperty('mensaje');
+  });
 
-  // 3. Comprobar que ya no existe
-  const getResponse = await request(app)
-    .get(`/api/productos/${id}`)
-    .set('Authorization', `Bearer ${tokenAdmin}`);
+  test('Debería rechazar actualizar producto sin token', async () => {
+    // Creamos uno con token para tener un id válido
+    const creado = await request(app)
+      .post('/api/productos')
+      .set('Authorization', `Bearer ${tokenAdmin}`)
+      .send({ nombre: 'Con token', precio: 10, cantidad: 1, categoria: 'Test' });
 
-  expect(getResponse.statusCode).toBe(404);
-});
+    const id = creado.body.id;
+    // Intento de actualizar sin token
+    const response = await request(app)
+      .put(`/api/productos/${id}`)
+      .send({ nombre: 'Sin token' });
 
+    expect(response.statusCode).toBe(401);
+    expect(response.body).toHaveProperty('mensaje');
+  });
 
-  // 🧹 Cerrar conexión al final
+  test('Debería rechazar eliminar producto sin token', async () => {
+    // Creamos uno con token para tener un id válido
+    const creado = await request(app)
+      .post('/api/productos')
+      .set('Authorization', `Bearer ${tokenAdmin}`)
+      .send({ nombre: 'Para eliminar', precio: 10, cantidad: 1, categoria: 'Test' });
+
+    const id = creado.body.id;
+    // Intento de eliminar sin token
+    const response = await request(app)
+      .delete(`/api/productos/${id}`);
+
+    expect(response.statusCode).toBe(401);
+    expect(response.body).toHaveProperty('mensaje');
+  });
+
+  // Limpieza al final
   afterAll(async () => {
     await sequelize.close();
   });
