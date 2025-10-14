@@ -88,6 +88,21 @@ function Register() {
           />
         </div>
 
+        <div className="form-group">
+          <label htmlFor="rol">Rol:</label>
+          <select
+            id="rol"
+            name="rol"
+            value={formData.rol}
+            onChange={handleChange}
+            required
+          >
+            <option value="admin">Administrador</option>
+            <option value="empleado">Empleado</option>
+            <option value="usuario">Usuario (solo consulta)</option>
+          </select>
+        </div>
+
         <button type="submit" className="login-button">Registrarse</button>
         
         <div className="register-link">
