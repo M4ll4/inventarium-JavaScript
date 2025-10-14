@@ -3,6 +3,20 @@ const Producto = require('../models/Producto');
 // Crear un nuevo producto
 exports.crearProducto = async (req, res) => {
   try {
+    // Validación de negocio mínima por TDD: no permitir valores negativos.
+    // Nota: se implementa en el controlador para alcanzar rápidamente el caso de prueba.
+    // Si más adelante se desea reforzar a nivel de datos, se puede mover al modelo con validaciones Sequelize.
+    const { nombre, precio, cantidad } = req.body || {};
+    // Campo requerido: nombre
+    if (nombre == null || String(nombre).trim() === '') {
+      return res.status(400).json({ mensaje: 'El nombre es requerido' });
+    }
+    if (precio !== undefined && Number(precio) < 0) {
+      return res.status(400).json({ mensaje: 'El precio no puede ser negativo' });
+    }
+    if (cantidad !== undefined && Number(cantidad) < 0) {
+      return res.status(400).json({ mensaje: 'La cantidad no puede ser negativa' });
+    }
     const nuevoProducto = await Producto.create(req.body);
     res.status(201).json(nuevoProducto);
   } catch (error) {
@@ -26,6 +40,14 @@ exports.listarProductos = async (req, res) => {
 exports.actualizarProducto = async (req, res) => {
   try {
     const { id } = req.params;
+    // Validación de negocio mínima por TDD: no permitir valores negativos.
+    const { precio, cantidad } = req.body || {};
+    if (precio !== undefined && Number(precio) < 0) {
+      return res.status(400).json({ mensaje: 'El precio no puede ser negativo' });
+    }
+    if (cantidad !== undefined && Number(cantidad) < 0) {
+      return res.status(400).json({ mensaje: 'La cantidad no puede ser negativa' });
+    }
     const [actualizados] = await Producto.update(req.body, {
       where: { id }
     });

@@ -75,3 +75,20 @@ exports.listarUsuarios = async (req, res) => {
     res.status(500).json({ mensaje: 'Error al obtener usuarios' });
   }
 };
+
+// Obtener usuario por ID
+exports.obtenerUsuarioPorId = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const usuario = await Usuario.findByPk(id, {
+      attributes: ['id', 'nombre', 'email', 'rol', 'createdAt']
+    });
+    if (!usuario) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+    }
+    res.json(usuario);
+  } catch (error) {
+    console.error('Error al obtener usuario por ID:', error);
+    res.status(500).json({ mensaje: 'Error al obtener usuario' });
+  }
+};

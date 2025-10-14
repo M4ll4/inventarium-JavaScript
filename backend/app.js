@@ -24,5 +24,8 @@ app.get('/', (req, res) => {
   res.send('Servidor funcionando correctamente 🚀');
 });
 
+// Middleware global de manejo de errores
+app.use(require('./middleware/errorHandler'));
+
 // Exportar la app (sin iniciar el servidor)
 module.exports = app;
