@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import PropTypes from "prop-types";
 import { useNavigate } from "react-router-dom";
 import { login, setToken } from "../api";
 
@@ -87,3 +88,7 @@ function Login({ onLogin }) {
 }
 
 export default Login;
+
+Login.propTypes = {
+  onLogin: PropTypes.func.isRequired,
+};

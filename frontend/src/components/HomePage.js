@@ -1,5 +1,13 @@
 import React from "react";
+import PropTypes from "prop-types";
 import { Navigate } from "react-router-dom";
+
+// Helper para determinar clase de stock (evita ternarios anidados Sonar S3358)
+function getStockClass(cantidad) {
+  if (cantidad > 20) return "stock-alto";
+  if (cantidad > 10) return "stock-medio";
+  return "stock-bajo";
+}
 
 function HomePage({
   autenticado,
@@ -168,15 +176,7 @@ function HomePage({
                   </p>
                   <p style={{ margin: "4px 0", color: "#2c3e50", fontSize: "14px" }}>
                     <strong>Stock:</strong>{" "}
-                    <span
-                      className={`stock-bar ${
-                        p.cantidad > 20
-                          ? "stock-alto"
-                          : p.cantidad > 10
-                          ? "stock-medio"
-                          : "stock-bajo"
-                      }`}
-                    ></span>{" "}
+                    <span className={`stock-bar ${getStockClass(p.cantidad)}`}></span>{" "}
                     ({p.cantidad ?? 0})
                   </p>
                 </div>
@@ -227,3 +227,40 @@ function HomePage({
 }
 
 export default HomePage;
+
+HomePage.propTypes = {
+  autenticado: PropTypes.bool.isRequired,
+  rol: PropTypes.string,
+  puedeEditar: PropTypes.bool.isRequired,
+  productos: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+      nombre: PropTypes.string,
+      descripcion: PropTypes.string,
+      categoria: PropTypes.string,
+      cantidad: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+      precio: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+      proveedor: PropTypes.string,
+    })
+  ),
+  nuevoProducto: PropTypes.shape({
+    nombre: PropTypes.string,
+    descripcion: PropTypes.string,
+    categoria: PropTypes.string,
+    cantidad: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    precio: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    proveedor: PropTypes.string,
+  }).isRequired,
+  setNuevoProducto: PropTypes.func.isRequired,
+  manejarEnvio: PropTypes.func.isRequired,
+  manejarEditar: PropTypes.func.isRequired,
+  manejarEliminar: PropTypes.func.isRequired,
+  editando: PropTypes.bool.isRequired,
+  setEditando: PropTypes.func.isRequired,
+  setAutenticado: PropTypes.func.isRequired,
+};
+
+HomePage.defaultProps = {
+  rol: "usuario",
+  productos: [],
+};
