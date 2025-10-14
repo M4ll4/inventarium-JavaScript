@@ -13,6 +13,13 @@ exports.registrarUsuario = async (req, res) => {
       return res.status(400).json({ mensaje: 'El correo ya está registrado' });
     }
 
+    // Si el rol es 'admin', verificar cuántos admins existen
+    if (rol === 'admin') {
+      const cantidadAdmins = await Usuario.count({ where: { rol: 'admin' } });
+      if (cantidadAdmins >= 3) {
+        return res.status(400).json({ mensaje: 'No se pueden registrar más de máximo 3 admins por ejecución' });
+      }
+    }
     // Crear usuario (la contraseña se encripta automáticamente por el hook)
     const nuevoUsuario = await Usuario.create({ nombre, email, contraseña, rol });
     res.status(201).json({ mensaje: 'Usuario registrado correctamente', usuario: nuevoUsuario });
