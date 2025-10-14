@@ -9,6 +9,11 @@ build/
 .env.local
 .env.*.local
 
+# Testing
+coverage/
+*.lcov
+.nyc_output/
+
 # OS
 .DS_Store
 Thumbs.db
