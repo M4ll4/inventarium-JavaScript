@@ -39,6 +39,7 @@ function Register() {
         setError(data.mensaje || 'Error en el registro');
       }
     } catch (error) {
+      console.error('Error en registro:', error);
       setError('Error al conectar con el servidor');
     }
   };
@@ -50,8 +51,9 @@ function Register() {
         {error && <div className="error-message">{error}</div>}
         
         <div className="form-group">
-          <label>Nombre:</label>
+          <label htmlFor="nombre">Nombre:</label>
           <input
+            id="nombre"
             type="text"
             name="nombre"
             value={formData.nombre}
@@ -61,31 +63,50 @@ function Register() {
         </div>
 
         <div className="form-group">
-          <label>Email:</label>
+          <label htmlFor="email">Email:</label>
           <input
+            id="email"
             type="email"
             name="email"
             value={formData.email}
             onChange={handleChange}
             required
+            autoComplete="email"
           />
         </div>
 
         <div className="form-group">
-          <label>Contraseña:</label>
+          <label htmlFor="password">Contraseña:</label>
           <input
+            id="password"
             type="password"
             name="contraseña"
             value={formData.contraseña}
             onChange={handleChange}
             required
+            autoComplete="new-password"
           />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="rol">Rol:</label>
+          <select
+            id="rol"
+            name="rol"
+            value={formData.rol}
+            onChange={handleChange}
+            required
+          >
+            <option value="admin">Administrador</option>
+            <option value="empleado">Empleado</option>
+            <option value="usuario">Usuario (solo consulta)</option>
+          </select>
         </div>
 
         <button type="submit" className="login-button">Registrarse</button>
         
         <div className="register-link">
-          ¿Ya tienes cuenta? <span onClick={() => navigate('/login')}>Inicia sesión</span>
+          ¿Ya tienes cuenta? <button type="button" onClick={() => navigate('/login')} style={{background:'none',border:'none',color:'#3498db',cursor:'pointer',padding:0}}>Inicia sesión</button>
         </div>
       </form>
     </div>
@@ -93,3 +114,5 @@ function Register() {
 }
 
 export default Register;
+
+// Register no recibe props actualmente; si más adelante se agregan, definir PropTypes aquí.

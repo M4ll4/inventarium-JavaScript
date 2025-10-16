@@ -29,9 +29,9 @@ function App() {
         console.log("📦 Datos recibidos del backend:", data);
 
         if (Array.isArray(data)) {
-          setProductos(data.filter((p) => p && p.nombre));
-        } else if (data?.productos && Array.isArray(data.productos)) {
-          setProductos(data.productos.filter((p) => p && p.nombre));
+          setProductos(data.filter((p) => p?.nombre));
+        } else if (Array.isArray(data?.productos)) {
+          setProductos(data.productos.filter((p) => p?.nombre));
         } else {
           console.warn("⚠️ Estructura inesperada:", data);
           setProductos([]);
@@ -49,7 +49,7 @@ function App() {
     e.preventDefault();
 
     try {
-      if (editando) {
+      if (editando?.id) {
         const actualizado = await actualizarProducto(editando.id, nuevoProducto);
         if (actualizado?.producto) {
           setProductos((prev) =>
@@ -87,17 +87,19 @@ function App() {
 
   // ✅ Activar modo edición
   const manejarEditar = (producto) => {
-   if (!producto) return;
+    if (!producto) {
+      return; // Guard clause: si no hay producto no se continúa
+    }
     setEditando(producto);
-   setNuevoProducto({
-     nombre: producto.nombre || "",
-     descripcion: producto.descripcion || "",
-     categoria: producto.categoria || "",
-     cantidad: producto.cantidad || "",
-     precio: producto.precio || "",
-     proveedor: producto.proveedor || "",
-  });
-};
+    setNuevoProducto({
+      nombre: producto.nombre || "",
+      descripcion: producto.descripcion || "",
+      categoria: producto.categoria || "",
+      cantidad: producto.cantidad || "",
+      precio: producto.precio || "",
+      proveedor: producto.proveedor || "",
+    });
+  };
 
 
   // Verificar autenticación al iniciar

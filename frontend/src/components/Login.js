@@ -1,6 +1,8 @@
 import React, { useState } from "react";
+import PropTypes from "prop-types";
 import { useNavigate } from "react-router-dom";
 import { login, setToken } from "../api";
+import "../App.css";
 
 function Login({ onLogin }) {
   const navigate = useNavigate();
@@ -39,51 +41,49 @@ function Login({ onLogin }) {
   };
 
   return (
-    <div
-      style={{
-        maxWidth: "400px",
-        margin: "40px auto",
-        padding: "2rem",
-        borderRadius: "10px",
-        boxShadow: "0 0 10px rgba(0,0,0,0.1)",
-        backgroundColor: "white",
-      }}
-    >
-      <h2 style={{ textAlign: "center", color: "#2c3e50", marginBottom: "1.5rem" }}>
-        🔐 Iniciar Sesión
-      </h2>
-      <form onSubmit={manejarLogin}>
-        <input
-          type="email"
-          placeholder="Correo"
-          value={correo}
-          onChange={(e) => setCorreo(e.target.value)}
-          required
-          style={{ display: "block", margin: "8px 0", padding: "8px" }}
-        />
-        <input
-          type="password"
-          placeholder="Contraseña"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          style={{ display: "block", margin: "8px 0", padding: "8px" }}
-        />
-        <button
-          type="submit"
-          style={{ padding: "8px 16px", cursor: "pointer" }}
-        >
-          Iniciar sesión
-        </button>
+    <div className="login-container">
+      <form onSubmit={manejarLogin} className="login-form">
+        <h2>🔐 Iniciar Sesión</h2>
+        {mensaje && <div className="error-message">{mensaje}</div>}
+        
+        <div className="form-group">
+          <label htmlFor="email">Email:</label>
+          <input
+            id="email"
+            type="email"
+            name="email"
+            value={correo}
+            onChange={(e) => setCorreo(e.target.value)}
+            required
+            autoComplete="email"
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="password">Contraseña:</label>
+          <input
+            id="password"
+            type="password"
+            name="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            autoComplete="current-password"
+          />
+        </div>
+
+        <button type="submit" className="login-button">Iniciar sesión</button>
+        
+        <div className="register-link">
+          ¿No tienes cuenta? <button type="button" onClick={() => navigate('/register')} style={{background:'none',border:'none',color:'#3498db',cursor:'pointer',padding:0}}>Regístrate aquí</button>
+        </div>
       </form>
-
-      {mensaje && <p>{mensaje}</p>}
-
-      <button onClick={() => navigate("/register")}>
-        Registrarse
-      </button>
     </div>
   );
 }
 
 export default Login;
+
+Login.propTypes = {
+  onLogin: PropTypes.func.isRequired,
+};
