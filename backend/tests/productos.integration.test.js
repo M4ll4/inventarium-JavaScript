@@ -180,6 +180,18 @@ describe('Pruebas del módulo de productos', () => {
     expect(response.body).toHaveProperty('mensaje');
   });
 
+  test('Debería responder 403 con token inválido', async () => {
+    const creado = await request(app)
+      .post('/api/productos')
+      .set('Authorization', `Bearer ${tokenAdmin}`)
+      .send({ nombre: 'Para token invalido', precio: 10, cantidad: 1, categoria: 'Test' });
+    const id = creado.body.id;
+    const response = await request(app)
+      .get(`/api/productos/${id}`)
+      .set('Authorization', 'Bearer token-falso');
+    expect(response.statusCode).toBe(403);
+  });
+
   // Limpieza al final
   afterAll(async () => {
     await sequelize.close();

@@ -21,7 +21,7 @@ const productoSchemaPUT = Joi.object({
   fecha_ingreso: Joi.date()
 }).min(1); // Al menos un campo
 
-module.exports = (req, res, next) => {
+function validateProducto(req, res, next) {
   let schema;
   if (req.method === 'POST') {
     schema = productoSchemaPOST;
@@ -34,5 +34,7 @@ module.exports = (req, res, next) => {
   if (error) {
     return res.status(400).json({ mensaje: error.details[0].message });
   }
-  next();
-};
+  return next();
+}
+
+module.exports = validateProducto;

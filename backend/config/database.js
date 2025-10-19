@@ -1,11 +1,11 @@
 const { Sequelize } = require('sequelize');
-require('dotenv').config();
+require('dotenv').config({ quiet: true });
 
 let sequelize;
 
 if (process.env.NODE_ENV === 'test') {
-  // Usar SQLite en memoria para pruebas
-  sequelize = new Sequelize('sqlite::memory:', { logging: false });
+  // Usar SQLite en memoria para pruebas (forma recomendada sin URL deprecada)
+  sequelize = new Sequelize({ dialect: 'sqlite', storage: ':memory:', logging: false });
 } else {
   sequelize = new Sequelize(
     process.env.DB_NAME,

@@ -1,6 +1,8 @@
 const request = require('supertest');
 const app = require('../app');
 const sequelize = require('../config/database');
+const Usuario = require('../models/Usuario');
+const bcrypt = require('bcrypt');
 
 describe('Pruebas del módulo de usuarios', () => {
 
@@ -63,6 +65,13 @@ describe('Pruebas del módulo de usuarios', () => {
     expect(response.statusCode).toBe(401);
   });
 
+  test('Debería rechazar login de usuario inexistente', async () => {
+    const response = await request(app)
+      .post('/api/usuarios/login')
+      .send({ email: 'noexiste@example.com', contraseña: 'x' });
+    expect(response.statusCode).toBe(404);
+  });
+
   test('Debería obtener un usuario por ID con GET /api/usuarios/:id', async () => {
     const response = await request(app)
       .get(`/api/usuarios/${userId}`)
@@ -70,6 +79,13 @@ describe('Pruebas del módulo de usuarios', () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.body).toHaveProperty('id', userId);
+  });
+
+  test('Debería responder 404 al obtener usuario inexistente', async () => {
+    const response = await request(app)
+      .get(`/api/usuarios/999999`)
+      .set('Authorization', `Bearer ${token}`);
+    expect(response.statusCode).toBe(404);
   });
 
 
@@ -141,6 +157,25 @@ describe('Pruebas del módulo de usuarios', () => {
     expect(responseLogin.body.rol).toBe('usuario');
   });
 
+  test('No debería permitir registrar un email duplicado', async () => {
+    const email = `dup_${Date.now()}@mail.com`;
+    const first = await request(app)
+      .post('/api/usuarios/register')
+      .send({ nombre: 'Dup', email, contraseña: '123456', rol: 'usuario' });
+    expect(first.statusCode).toBe(201);
+    const dup = await request(app)
+      .post('/api/usuarios/register')
+      .send({ nombre: 'Dup2', email, contraseña: '123456', rol: 'usuario' });
+    expect(dup.statusCode).toBe(400);
+  });
+
+  test('Listar usuarios devuelve arreglo', async () => {
+    const response = await request(app)
+      .get('/api/usuarios');
+    expect(response.statusCode).toBe(200);
+    expect(Array.isArray(response.body)).toBe(true);
+  });
+
   test('No se pueden registrar más de 3 admins por ejecución', async () => {
     // Ya hay 1 admin creado en beforeAll, crear el segundo
     const response2 = await request(app)
@@ -178,6 +213,22 @@ describe('Pruebas del módulo de usuarios', () => {
     expect(responseFail.statusCode).toBe(400);
     expect(responseFail.body).toHaveProperty('mensaje');
     expect(responseFail.body.mensaje).toMatch(/máximo 3 admins/i);
+  });
+
+  test('Actualizar contraseña dispara hash (hook beforeUpdate)', async () => {
+    // Nos aseguramos de tener un usuario existente (userId creado en primer test)
+    const usuario = await Usuario.findByPk(userId);
+    expect(usuario).toBeTruthy();
+    const hashAnterior = usuario.contraseña;
+
+    usuario.contraseña = 'nueva123!';
+    await usuario.save(); // Debe disparar hook beforeUpdate y re-hashear
+
+    const actualizado = await Usuario.findByPk(userId);
+    expect(actualizado.contraseña).not.toBe('nueva123!');
+    expect(actualizado.contraseña).not.toBe(hashAnterior);
+    const ok = await bcrypt.compare('nueva123!', actualizado.contraseña);
+    expect(ok).toBe(true);
   });
 
   afterAll(async () => {

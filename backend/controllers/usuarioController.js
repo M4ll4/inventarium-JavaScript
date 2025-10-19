@@ -1,6 +1,7 @@
 const Usuario = require('../models/Usuario');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const { JWT_SECRET, JWT_EXPIRES_IN, MAX_ADMINS } = require('../config/constants');
 
 // Registrar un nuevo usuario
 exports.registrarUsuario = async (req, res) => {
@@ -16,7 +17,7 @@ exports.registrarUsuario = async (req, res) => {
     // Si el rol es 'admin', verificar cuántos admins existen
     if (rol === 'admin') {
       const cantidadAdmins = await Usuario.count({ where: { rol: 'admin' } });
-      if (cantidadAdmins >= 3) {
+      if (cantidadAdmins >= MAX_ADMINS) {
         return res.status(400).json({ mensaje: 'No se pueden registrar más de máximo 3 admins por ejecución' });
       }
     }
@@ -49,8 +50,8 @@ exports.login = async (req, res) => {
     // Crear token JWT
     const token = jwt.sign(
       { id: usuario.id, rol: usuario.rol },
-      process.env.JWT_SECRET || 'secreto_super_seguro',
-      { expiresIn: '2h' }
+      JWT_SECRET,
+      { expiresIn: JWT_EXPIRES_IN }
     );
 
     res.json({

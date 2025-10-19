@@ -1,13 +1,11 @@
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config();
+require('dotenv').config({ quiet: true });
 const sequelize = require('./config/database');
 
 // Importar modelos
 require('./models/Producto');
 require('./models/Usuario');
-require('./models/Movimiento');
-require('./models/Pedido');
 
 const app = express();
 

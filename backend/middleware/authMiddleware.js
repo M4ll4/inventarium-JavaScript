@@ -1,8 +1,7 @@
 const jwt = require('jsonwebtoken');
+const { JWT_SECRET } = require('../config/constants');
 
-const SECRET_KEY = process.env.JWT_SECRET || 'secreto_super_seguro'; // misma clave del usuarioController
-
-module.exports = (req, res, next) => {
+function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
@@ -12,10 +11,14 @@ module.exports = (req, res, next) => {
   const token = authHeader.split(' ')[1];
 
   try {
-    const decoded = jwt.verify(token, SECRET_KEY);
+    const decoded = jwt.verify(token, JWT_SECRET);
     req.usuario = decoded; // guarda los datos del usuario (id, rol)
     next();
   } catch (error) {
+    // eslint-disable-next-line no-console
+    console.warn('Auth token verification failed:', error && error.message);
     return res.status(403).json({ mensaje: 'Token inválido o expirado' });
   }
-};
+}
+
+module.exports = authMiddleware;
