@@ -20,9 +20,19 @@ const parsedEnvOrigins = (process.env.CORS_ORIGINS || '')
   .filter(Boolean);
 
 const defaultDevOrigins = ['http://localhost:3000', 'http://127.0.0.1:3000'];
-const whitelist = parsedEnvOrigins.length
-  ? parsedEnvOrigins
-  : (process.env.NODE_ENV === 'production' ? [] : defaultDevOrigins);
+const envIsProd = process.env.NODE_ENV === 'production';
+let fallbackOrigins;
+if (envIsProd) {
+  fallbackOrigins = [];
+} else {
+  fallbackOrigins = defaultDevOrigins;
+}
+let whitelist;
+if (parsedEnvOrigins.length) {
+  whitelist = parsedEnvOrigins;
+} else {
+  whitelist = fallbackOrigins;
+}
 
 const corsOptions = {
   origin: (origin, callback) => {
