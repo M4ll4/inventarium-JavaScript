@@ -1,274 +1,61 @@
-# 🎯 Guía Rápida de Comandos para Sustentación
+# Guía de Sustentación - Inventarium
 
-## 📋 Comandos Esenciales
-
-### 1. Ejecutar Todos los Tests
-```bash
-cd backend
-npm test
-```
-**Resultado esperado:** ✅ 26 tests pasando
+Esta guía es un resumen sencillo y directo para explicar el proyecto, las pruebas y el enfoque de desarrollo. Úsala como guión para la sustentación.
 
 ---
 
-### 2. Ver Coverage Detallado
-```bash
-cd backend
-npm run test:coverage
-```
-**Métricas actuales:**
-- Statements: 77.25%
-- Branches: 62.96%
-- Functions: 66.66%
-- Lines: 80.69%
+## ¿Qué es Inventarium?
+
+Inventarium es un sistema de gestión de inventarios con control de usuarios y roles, desarrollado en JavaScript usando Node.js (backend) y React (frontend). El backend expone una API REST segura y el frontend permite interactuar con ella de forma sencilla.
 
 ---
 
-### 3. Ejecutar Tests de Productos Solamente
-```bash
-cd backend
-npm test -- productos.integration.test.js
-```
-**Resultado esperado:** ✅ 14 tests de productos
+## ¿Qué se hizo en el backend?
+- Se implementó una API REST modular con Express y Sequelize.
+- Se crearon modelos para usuarios y productos.
+- Se agregó autenticación con JWT y control de roles (admin, empleado, usuario).
+- Se validan datos y reglas de negocio (ej: no se pueden crear productos con cantidad o precio negativos).
+- Se protegieron rutas sensibles y se maneja cualquier error de forma centralizada.
+- Se documentó todo y se automatizó la verificación del entorno para facilitar la vida al equipo.
 
 ---
 
-### 4. Ejecutar Tests de Usuarios Solamente
-```bash
-cd backend
-npm test -- usuarios.integration.test.js
-```
-**Resultado esperado:** ✅ 12 tests de usuarios
+## ¿Cómo se aplicó TDD?
+- Antes de escribir cada funcionalidad, primero se escribió un test que fallaba.
+- Luego se implementó el código mínimo para que ese test pasara.
+- Finalmente, se refactorizó el código manteniendo siempre los tests en verde.
+- Así, cada parte del sistema está cubierta por pruebas desde el inicio y se garantiza que todo funciona como se espera.
 
 ---
 
-### 5. Iniciar el Servidor (Modo Desarrollo)
-```bash
-cd backend
-npm run dev
-```
-**Puerto por defecto:** http://localhost:3000
+## ¿Qué prueban los tests?
+- Los tests cubren los casos más importantes del sistema:
+  - Registro y login de usuarios, incluyendo validaciones (ej: emails únicos, máximo 3 admins).
+  - CRUD completo de productos, con validaciones de negocio y seguridad.
+  - Que solo los roles correctos pueden modificar productos.
+  - Que los errores y casos límite (ej: producto no encontrado, token inválido) se manejan correctamente.
+- Todos los tests son de integración: simulan peticiones reales a la API y verifican la respuesta.
+- Se usa una base de datos en memoria para que los tests sean rápidos y no afecten datos reales.
 
 ---
 
-### 6. Contar Líneas de Código
-```bash
-cd backend
-find . -path ./node_modules -prune -o -path ./coverage -prune -o -name "*.js" -print | xargs wc -l | tail -1
-```
-**Resultado esperado:** ~959 líneas totales
+## ¿Por qué es importante este enfoque?
+- El TDD asegura que el código es confiable y fácil de mantener.
+- Las pruebas automatizadas permiten detectar errores rápido y facilitan los cambios futuros.
+- La documentación y los scripts de verificación ayudan a que cualquier persona pueda levantar el proyecto sin problemas.
 
 ---
 
-### 7. Ver Estructura del Proyecto
-```bash
-cd backend
-tree -L 2 -I 'node_modules|coverage'
-```
-O en Windows:
-```bash
-ls -R | grep ":$" | sed -e 's/:$//' -e 's/[^-][^\/]*\//--/g' -e 's/^/   /' -e 's/-/|/'
-```
+## ¿Cómo mostrar esto en la sustentación?
+1. Explica brevemente qué hace el sistema y su arquitectura.
+2. Muestra cómo se ejecutan los tests y que todos pasan.
+3. Enseña un ejemplo de validación o error capturado por los tests.
+4. Resalta que todo el desarrollo fue guiado por pruebas (TDD).
+5. Si hay tiempo, muestra cómo cambiar una regla y cómo un test lo detecta.
 
 ---
 
-### 8. Verificar Archivos Eliminados
-```bash
-cd backend
-# Estos comandos deben retornar "No such file"
-ls models/Movimiento.js 2>&1
-ls models/Pedido.js 2>&1
-ls controllers/authController.js 2>&1
-ls routes/authRoutes.js 2>&1
-```
-
----
-
-## 🎬 Demo en Vivo
-
-### Flujo Completo de Demostración (5 minutos)
-
-```bash
-# 1. Mostrar estructura
-cd backend
-ls -la
-
-# 2. Ejecutar tests
-npm test
-
-# 3. Mostrar coverage
-npm run test:coverage
-
-# 4. Demostrar test específico
-npm test -- productos.integration.test.js
-
-# 5. Abrir coverage HTML
-open coverage/index.html  # MacOS/Linux
-start coverage/index.html # Windows
-```
-
----
-
-## 📊 Demostración de Tests Modulares
-
-### Caso de Uso: "Quiero ver solo tests de productos"
-```bash
-cd backend
-npm test -- productos.integration.test.js
-```
-**Ventaja:** Ejecuta solo 14 tests en lugar de 26
-
-### Caso de Uso: "Quiero ver solo tests de usuarios"
-```bash
-cd backend
-npm test -- usuarios.integration.test.js
-```
-**Ventaja:** Ejecuta solo 12 tests en lugar de 26
-
-### Caso de Uso: "Quiero ejecutar un test específico"
-```bash
-cd backend
-npm test -- -t "Debería registrar un nuevo usuario"
-```
-**Ventaja:** Ejecuta un único test por nombre
-
----
-
-## 🔍 Verificación de Requisitos
-
-### Requisito 1: Mínimo 300 líneas de código
-```bash
-cd backend
-find . -path ./node_modules -prune -o -path ./coverage -prune -o -name "*.js" -print | xargs wc -l | tail -1
-```
-**✅ Resultado:** ~959 líneas (319% del mínimo)
-
-### Requisito 2: Coverage >60%
-```bash
-cd backend
-npm run test:coverage | grep "Statements"
-```
-**✅ Resultado:** 77.25% (>60% requerido)
-
-### Requisito 3: Metodología TDD
-**✅ Demostración:** 
-1. Abrir `tests/productos.integration.test.js`
-2. Mostrar tests antes del código
-3. Explicar flujo Red-Green-Refactor
-
----
-
-## 🐛 Troubleshooting
-
-### Si los tests fallan:
-
-1. **Verificar instalación:**
-```bash
-cd backend
-npm install
-```
-
-2. **Limpiar cache:**
-```bash
-cd backend
-npm cache clean --force
-rm -rf node_modules
-npm install
-```
-
-3. **Verificar variables de entorno:**
-```bash
-cat backend/.env
-# Debe tener NODE_ENV=test para tests
-```
-
----
-
-## 📈 Mostrar Mejoras del Código
-
-### Antes de Limpieza:
-- ❌ 1,132 líneas (con código sin usar)
-- ❌ 36 tests (10 redundantes)
-- ❌ Modelos sin implementar (Movimiento, Pedido)
-- ❌ Controllers duplicados
-
-### Después de Limpieza:
-- ✅ 959 líneas (solo código útil)
-- ✅ 26 tests (sin redundancia)
-- ✅ Solo modelos implementados
-- ✅ Sin duplicación
-
----
-
-## 🎓 Preguntas Frecuentes en Sustentación
-
-### P: ¿Por qué bajó el coverage?
-**R:** Se eliminó código sin usar que no tenía tests. El coverage sigue siendo >60% requerido.
-
-### P: ¿Por qué menos tests?
-**R:** Eliminamos 10 tests unitarios que eran redundantes con tests de integración.
-
-### P: ¿Dónde están los modelos Movimiento y Pedido?
-**R:** Se eliminaron porque no tenían funcionalidad implementada (sin controllers, rutas ni tests).
-
-### P: ¿Cómo ejecuto solo un test?
-**R:** `npm test -- productos.integration.test.js` o `npm test -- -t "nombre del test"`
-
-### P: ¿Qué base de datos usa?
-**R:** SQLite en memoria para tests, PostgreSQL para producción.
-
----
-
-## 🚀 Comandos Extra Útiles
-
-### Ver reporte HTML de coverage:
-```bash
-cd backend
-npm run test:coverage
-# Luego abrir: coverage/index.html
-```
-
-### Ejecutar tests en modo watch (durante desarrollo):
-```bash
-cd backend
-npm test -- --watch
-```
-
-### Ver solo tests fallidos:
-```bash
-cd backend
-npm test -- --onlyFailures
-```
-
-### Ejecutar con logs detallados:
-```bash
-cd backend
-npm test -- --verbose
-```
-
----
-
-## 📝 Documentación Disponible
-
-1. **README Principal:** `backend/README.md`
-2. **README de Tests:** `backend/tests/README.md`
-3. **Resumen de Cambios:** `RESUMEN_CAMBIOS.md`
-4. **Esta Guía:** `GUIA_SUSTENTACION.md`
-
----
-
-## ✅ Checklist Final
-
-Antes de la sustentación, verificar:
-
-- [ ] `npm test` pasa todos los tests (26/26)
-- [ ] `npm run test:coverage` muestra >60% coverage
-- [ ] Servidor arranca sin errores (`npm run dev`)
-- [ ] Frontend funciona (opcional, no afecta métricas)
-- [ ] Documentación completa y actualizada
-- [ ] `.env` configurado correctamente
-- [ ] `node_modules` instalado
-
----
-
-**¡Listo para sustentar con éxito! 🎉**
+**En resumen:**
+- El sistema es seguro, probado y fácil de mantener.
+- Todo está automatizado y documentado.
+- El enfoque TDD garantiza calidad y confianza en el código.
